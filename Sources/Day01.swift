@@ -1,4 +1,5 @@
 import Algorithms
+import RegexBuilder
 
 struct Day01: AdventDay {
   // Save your data in a corresponding text file in the `Data` directory.
@@ -24,7 +25,81 @@ struct Day01: AdventDay {
 
   // Replace this with your solution for the second part of the day's challenge.
   func part2() -> Any {
-    // Sum the maximum entries in each set of data
-    lines.map { $0.count }.reduce(0, +)
+    let calibrationValues = lines.map { line in
+      let digits = line.matches(of: r).map(\.output.1)
+      guard
+        let first = digits.first,
+        let last = digits.last
+      else {
+        return 0
+      }
+      return Int(String(first) + String(last))!
+    }
+    return calibrationValues.reduce(0, +)
+  }
+  
+  let r = Regex<(Substring, Int)> {
+    Capture {
+      ChoiceOf {
+        Regex {
+          "on"
+          Lookahead {
+            "e"
+          }
+        }
+        Regex {
+          "tw"
+          Lookahead {
+            "o"
+          }
+        }
+        Regex {
+          "thre"
+          Lookahead {
+            "e"
+          }
+        }
+        "four"
+        Regex {
+          "fiv"
+          Lookahead {
+            "e"
+          }
+        }
+        "six"
+        "seven"
+        Regex {
+          "eigh"
+          Lookahead {
+            "t"
+          }
+        }
+        Regex {
+          "nin"
+          Lookahead {
+            "e"
+          }
+        }
+        "1"
+        "2"
+        "3"
+        "4"
+        "5"
+        "6"
+        "7"
+        "8"
+        "9"
+      }
+    } transform: { word in
+      SpelledDigit(rawValue: String(word))?.number ?? Int(String(word))!
+    }
+  }
+  
+  enum SpelledDigit: String, CaseIterable {
+    case one = "on", two = "tw", three = "thre", four, five = "fiv", six, seven, eight = "eigh", nine = "nin"
+    
+    var number: Int {
+      Self.allCases.firstIndex(of: self)! + 1
+    }
   }
 }
