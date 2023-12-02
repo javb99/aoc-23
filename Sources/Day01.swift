@@ -6,100 +6,95 @@ struct Day01: AdventDay {
   var data: String
 
   // Splits input data into its component parts and convert from string.
-  var lines: [Substring] {
-    data.split(separator: "\n")
+  var lines: SplitCollection<String.UTF8View> {
+    data.utf8.lazy
+      .split(separator: .ascii_newline)
   }
 
   // Replace this with your solution for the first part of the day's challenge.
   func part1() -> Any {
-    lines.map { line in
+    lines.map { line -> Int in
       guard
-        let firstIndex = line.firstIndex(where: \.isNumber),
-          let lastIndex = line.lastIndex(where: \.isNumber)
+        let first = line.lazy.compactMap(Int.init(nonZeroAsciiDigit:)).first,
+        let last = line.lazy.compactMap(Int.init(nonZeroAsciiDigit:)).last
       else {
         return 0
       }
-      return Int(String(line[firstIndex]) + String(line[lastIndex]))!
+      return Int(
+        tensDigit: first,
+        onesDigit: last
+      )
     }.reduce(0, +)
   }
 
   // Replace this with your solution for the second part of the day's challenge.
   func part2() -> Any {
-    let calibrationValues = lines.map { line in
-      let digits = line.matches(of: r).map(\.output.1)
-      guard
-        let first = digits.first,
-        let last = digits.last
-      else {
-        return 0
-      }
-      return Int(String(first) + String(last))!
-    }
+    let calibrationValues = lines
+      .map(part2CalibrationValue(for:))
     return calibrationValues.reduce(0, +)
   }
   
-  let r = Regex<(Substring, Int)> {
-    Capture {
-      ChoiceOf {
-        Regex {
-          "on"
-          Lookahead {
-            "e"
-          }
-        }
-        Regex {
-          "tw"
-          Lookahead {
-            "o"
-          }
-        }
-        Regex {
-          "thre"
-          Lookahead {
-            "e"
-          }
-        }
-        "four"
-        Regex {
-          "fiv"
-          Lookahead {
-            "e"
-          }
-        }
-        "six"
-        "seven"
-        Regex {
-          "eigh"
-          Lookahead {
-            "t"
-          }
-        }
-        Regex {
-          "nin"
-          Lookahead {
-            "e"
-          }
-        }
-        "1"
-        "2"
-        "3"
-        "4"
-        "5"
-        "6"
-        "7"
-        "8"
-        "9"
-      }
-    } transform: { word in
-      SpelledDigit(rawValue: String(word))?.number ?? Int(String(word))!
+  private func part2CalibrationValue(for line: Substring.UTF8View) -> Int {
+    var first: Int? = nil
+    var last: Int? = nil
+    func record(_ digit: Int) {
+      if first == nil { first = digit }
+      last = digit
     }
+    var remaining = line
+    while let next = remaining.first {
+      defer { remaining.removeFirst() }
+      
+      if let digit = Int(nonZeroAsciiDigit: next) {
+        record(digit)
+      } else if let digit = SpelledDigit.parseValue(fromStartOf: remaining) {
+        record(digit)
+      }
+    }
+    guard
+      let first,
+      let last
+    else {
+      return 0
+    }
+    return Int(tensDigit: first, onesDigit: last)
   }
   
   enum SpelledDigit: String, CaseIterable {
-    case one = "on", two = "tw", three = "thre", four, five = "fiv", six, seven, eight = "eigh", nine = "nin"
+    case one, two, three, four, five, six, seven, eight, nine
     
-    var number: Int {
-      Self.allCases.firstIndex(of: self)! + 1
+    static let utf8Table: [String.UTF8View] = SpelledDigit.allCases.map(\.rawValue.utf8)
+
+    static func parseValue(fromStartOf remaining: some Collection<UInt8>) -> Int? {
+      for (offset, name) in utf8Table.enumerated() {
+        if remaining.starts(with: name) {
+          return offset+1
+        }
+      }
+      return nil
     }
   }
+}
+
+fileprivate extension Int {
+  /// - Precondition: `tensDigit` is non-zero
+  init(tensDigit: Int, onesDigit: Int) {
+    self = tensDigit * 10 + onesDigit
+  }
+  init?(nonZeroAsciiDigit byte: UTF8.CodeUnit) {
+    guard byte > .ascii_0 else {
+      return nil
+    }
+    self = Int(byte - .ascii_0)
+    if self > 9 {
+      return nil
+    }
+  }
+}
+
+extension UTF8.CodeUnit {
+  static let ascii_newline = Character("\n").asciiValue!
+  static let ascii_0 = Character("0").asciiValue!
+  static let ascii_1 = Character("1").asciiValue!
+  static let ascii_9 = Character("9").asciiValue!
 }

@@ -4,6 +4,19 @@ import XCTest
 
 // Make a copy of this file for every day to ensure the provided smoke tests
 // pass.
+
+// regex       part 2 took 0.044638583 seconds.
+
+// for then if part 2 took 0.955438333 seconds.
+// if then for part 2 took 0.112071041 seconds.
+// utf8        part 2 took 0.014128875 seconds.
+// subsequence part 2 took 0.019910625 seconds.
+// lazy split  part 2 took 0.0151975 seconds.
+// cache table part 2 took 0.013623292 seconds.
+// utf8 split  part 2 took 0.0098885 seconds.
+// direct sum  part 2 took 0.010497 seconds.
+
+
 final class Day01Tests: XCTestCase {
 
   func testPart1() throws {
