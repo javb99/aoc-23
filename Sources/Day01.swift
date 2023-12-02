@@ -92,7 +92,7 @@ fileprivate extension Int {
   }
 }
 
-extension UTF8.CodeUnit {
+fileprivate extension UTF8.CodeUnit {
   static let ascii_newline = Character("\n").asciiValue!
   static let ascii_0 = Character("0").asciiValue!
   static let ascii_1 = Character("1").asciiValue!
